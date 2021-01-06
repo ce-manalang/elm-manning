@@ -6,8 +6,8 @@ import Html exposing (..)
 import Html.Attributes as Attr exposing (..)
 import Html.Events exposing (on, onClick)
 import Http
-import Json.Decode exposing (Decoder, at, bool, int, list, string, succeed)
-import Json.Decode.Pipeline exposing (optional, required)
+import Json.Decode as Decode exposing (Decoder, at, bool, int, list, string, succeed)
+import Json.Decode.Pipeline as Pipeline exposing (optional, required)
 import Json.Encode as Encode
 import Random
 
@@ -136,9 +136,9 @@ type alias Photo =
 photoDecoder : Decoder Photo
 photoDecoder =
   succeed Photo
-      |> required "url" string
-      |> required "size" int
-      |> optional "title" string "(untitled)"
+      |> Pipeline.required "url" Decode.string
+      |> Pipeline.required "size" Decode.int
+      |> Pipeline.optional "title" Decode.string "(untitled)"
 
 
 type Status
@@ -228,7 +228,7 @@ applyFilters model =
                 filters =
                     [ { name = "Hue", amount = toFloat model.hue / 11 }
                     , { name = "Ripple", amount = toFloat model.ripple / 11}
-                    , { name = "Noise", amount = toFloat.model.noise / 11}
+                    , { name = "Noise", amount = toFloat model.noise / 11}
                     ]
 
                 url =
@@ -259,7 +259,7 @@ initialCmd : Cmd Msg
 initialCmd =
     Http.get
         { url = "http://elm-in-action.com/photos/list.json"
-        , expect = Http.expectJson GotPhotos (Json.Decode.list photoDecoder)
+        , expect = Http.expectJson GotPhotos (Decode.list photoDecoder)
         }
 
 
@@ -295,5 +295,5 @@ rangeSlider attributes children =
 onSlide : (Int -> msg) -> Attribute msg
 onSlide toMsg =
     at [ "detail", "userSlidTo" ] int
-        |> Json.Decode.map toMsg
+        |> Decode.map toMsg
         |> on "slide"
